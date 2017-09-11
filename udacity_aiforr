@@ -1,0 +1,73 @@
+def localize(colors,measurements,motions,sensor_right,p_move):
+    # initializes p to a uniform distribution over a grid of the same dimensions as colors
+    pinit = 1.0 / float(len(colors)) / float(len(colors[0]))
+    p = [[pinit for row in range(len(colors[0]))] for col in range(len(colors))]
+    for k in range(len(measurements)):
+        p = move(p, motions[k], p_move)
+        print (k, p)
+        p = sense(p, colors, measurements[k], (1-sensor_right))
+        print (k, p)
+    return p
+
+def move(p, m, p_move):
+
+    if m[0] == 0 and m[1] == 0:
+        #print ("Stay")
+        q = []
+        for i, r in enumerate(p):
+            q.append(p[i])
+        #p = list(map(lambda x: float(x) * p_move, r) for r in p)
+        for i, r in enumerate(p):
+            for j in range(len(r)):
+                p[i][j] = float (q[i][j]) * (p_move) + float(p[i][j]) * (1 - p_move)    
+    elif m[0] == 0 and m[1] == -1:
+        #print ("Left")
+        q = []
+        for i, r in enumerate(p):
+            q.append(r[1:] + r[:1])
+        #q = list(map(lambda x: float(x) * p_move, r) for r in q)        
+        for i, r in enumerate(p):
+            for j in range(len(r)):
+                p[i][j] = float (q[i][j]) * (p_move) + float(p[i][j]) * (1 - p_move)
+    elif m[0] == 0 and m[1] == 1:
+        #print ("Right")
+        q = []
+        for i, r in enumerate(p):
+            q.append(r[-1:] + r[:-1])
+        #q = list(map(lambda x: float(x) * p_move, r) for r in q)        
+        for i, r in enumerate(p):
+            for j in range(len(r)):
+                p[i][j] = float (q[i][j]) * (p_move) + float(p[i][j]) * (1 - p_move)
+    elif m[0] == -1 and m[1] == 0:
+        #print ("Up")
+        q = []
+        q.append(p[1:] + p[:1])
+        #p = list(map(lambda x: float(x) * p_move, r) for r in p)
+        for i, r in enumerate(p):
+            for j in range(len(r)):
+                p[i][j] = float (q[i][j]) * (p_move) + float(p[i][j]) * (1 - p_move)        
+    elif m[0] == 1 and m[1] == 0:
+        #print ("Down")
+        q = []
+        q.append(p[-1:] + p[:-1])
+        #p = list(map(lambda x: float(x) * p_move, r) for r in p)
+        for i, r in enumerate(p):
+            for j in range(len(r)):
+                p[i][j] = float (q[i][j]) * (p_move) + float(p[i][j]) * (1 - p_move)
+    return p
+    
+def sense(p, colors, Z, sensor_wrong):
+    for c in Z:
+        for i, r in enumerate(colors):
+            for j in range(len(r)):
+                hit = (r[j] == c)
+                p[i][j] = float(p[i][j]) * (hit * (1 -sensor_wrong) + (1 - hit) * sensor_wrong)
+    s = 0
+    for i, r in enumerate(p):
+        for j in range(len(r)):
+            s = s + float(p[i][j])
+    #print (s)
+    for i, r in enumerate(p):
+        for j in range(len(r)):
+            p[i][j] = float(p[i][j]) / s    
+    return p
